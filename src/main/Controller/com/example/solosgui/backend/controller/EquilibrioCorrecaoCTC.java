@@ -1,4 +1,4 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.controller;
 
 public class EquilibrioCorrecaoCTC {
 

@@ -1,7 +1,5 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.model.data;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.util.Objects;

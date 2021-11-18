@@ -1,5 +1,6 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.model;
 
+import com.example.solosgui.backend.model.data.NomeNutrienteAdicional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

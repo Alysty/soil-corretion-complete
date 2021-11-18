@@ -1,5 +1,6 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.controller;
 
+import com.example.solosgui.backend.model.Conversao;
 import lombok.NonNull;
 
 public class ConverteKgHaEmP2O5 implements Conversao<Double, Double> {

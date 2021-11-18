@@ -1,7 +1,9 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.model.data;
 
 import java.util.Set;
 
+import com.example.solosgui.backend.model.IFonteNutriente;
+import com.example.solosgui.backend.model.NutrienteAdicional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

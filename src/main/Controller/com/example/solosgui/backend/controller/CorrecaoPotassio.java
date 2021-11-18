@@ -1,9 +1,13 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.controller;
 
-public class CorrecaoPotassio 
-        implements 
-            ICorrecaoNutriente<FontePotassio>,
-            ICorrecaoNutrienteQuantidadeAplicar<FontePotassio> {
+import com.example.solosgui.backend.model.data.FontePotassio;
+import com.example.solosgui.backend.model.ICorrecaoNutriente;
+import com.example.solosgui.backend.model.ICorrecaoNutrienteQuantidadeAplicar;
+
+public class CorrecaoPotassio
+        implements
+        ICorrecaoNutriente<FontePotassio>,
+        ICorrecaoNutrienteQuantidadeAplicar<FontePotassio> {
 
     public double calculaNecessidadeAdicionarCMolcDm3 (
         double teorSolo,

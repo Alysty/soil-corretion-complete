@@ -1,6 +1,9 @@
-package com.example.solosgui.backend;
+package com.example.solosgui.backend.controller;
 
-public class CorrecaoCalcioMagnesio 
+import com.example.solosgui.backend.model.data.FonteCalcioMagnesio;
+import com.example.solosgui.backend.model.ICorrecaoNutriente;
+
+public class CorrecaoCalcioMagnesio
         implements ICorrecaoNutriente<FonteCalcioMagnesio> {
 
     public double calculaQuantidadeAplicar(
