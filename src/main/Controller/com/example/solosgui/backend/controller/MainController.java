@@ -1,5 +1,8 @@
 package com.example.solosgui;
 
+import com.example.solosgui.backend.controller.EquilibrioCorrecaoCTC;
+import com.example.solosgui.backend.model.data.NutrientesCTC;
+import com.example.solosgui.backend.model.data.TexturaSolo;
 import com.example.solosgui.util.exceptions.InvalidEntryException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
@@ -85,6 +88,11 @@ public class MainController {
     public TextField magnesioCTCDesejada;
     public Text magnesioCTCAtual;
 
+
+    //Util
+    public EquilibrioCorrecaoCTC equilibrioCorrecaoCTC = new EquilibrioCorrecaoCTC();
+
+
     public void actionTextura(ActionEvent actionEvent) {
         try{
             texturaEscolhida();
@@ -113,18 +121,19 @@ public class MainController {
     }
 
     public void texturaEscolhida() throws NumberFormatException, InvalidEntryException {
-        if(Integer.parseInt(texturaSolo.getCharacters().toString())==1){
-            fosforoIdeal.setText("9.0");
-            potassioIdeal.setText("0.35");
-            calcioIdeal.setText("6.0");
-            magnesioIdeal.setText("1.5");
-            enxofreIdeal.setText("9.0");
-            aluminioIdeal.setText("0.0");
-            hPlusAlIdeal.setText("0.0");
-            potassioCTCAtual.setText("1.2");
-            calcioCTCAtual.setText("44.7");
-            magnesioCTCAtual.setText("12.6");
-            vPorcentagemAtual.setText("58.49");
+        NutrientesCTC chosenTextureValues = TexturaSolo.values()[Integer.parseInt(texturaSolo.getCharacters().toString())].calculaValorIdeal();
+        if(chosenTextureValues != null){
+            fosforoIdeal.setText(String.valueOf(chosenTextureValues.fosforo()));
+            potassioIdeal.setText(String.valueOf(chosenTextureValues.potassio()));
+            calcioIdeal.setText(String.valueOf(chosenTextureValues.calcio()));
+            magnesioIdeal.setText(String.valueOf(chosenTextureValues.magnesio()));
+            enxofreIdeal.setText(String.valueOf(chosenTextureValues.enxofre()));
+            aluminioIdeal.setText(String.valueOf(chosenTextureValues.aluminio()));
+            hPlusAlIdeal.setText(String.valueOf(chosenTextureValues.aluminioHidrogenio()));
+            potassioCTCAtual.setText(String.valueOf(chosenTextureValues.potassio()));
+            calcioCTCAtual.setText(String.valueOf(chosenTextureValues.calcio()));
+            magnesioCTCAtual.setText(String.valueOf(chosenTextureValues.magnesio()));
+            vPorcentagemAtual.setText(String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual()));
         }else{
             throw new InvalidEntryException();
         }
