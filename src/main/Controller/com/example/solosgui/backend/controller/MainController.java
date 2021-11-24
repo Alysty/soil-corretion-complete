@@ -2,6 +2,7 @@ package com.example.solosgui.backend.controller;
 
 import com.example.solosgui.backend.model.NutrienteAdicional;
 import com.example.solosgui.backend.model.data.FonteFosforo;
+import com.example.solosgui.backend.model.data.FontePotassio;
 import com.example.solosgui.backend.model.data.NutrientesCTC;
 import com.example.solosgui.backend.model.data.TexturaSolo;
 import javafx.event.ActionEvent;
@@ -11,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -136,12 +138,12 @@ public class MainController {
         aluminioIdeal.setText(String.valueOf(chosenTextureValues.aluminio()));
         hPlusAlIdeal.setText(String.valueOf(chosenTextureValues.aluminioHidrogenio()));
 
-        potassioCTCAtual.setText(String.valueOf(chosenTextureValues.potassio()));
         calcioCTCAtual.setText(String.valueOf(chosenTextureValues.calcio()));
         magnesioCTCAtual.setText(String.valueOf(chosenTextureValues.magnesio()));
         double sCmol = equilibrioCorrecaoCTC.calculaSCmol(chosenTextureValues.potassio(),chosenTextureValues.calcio(),chosenTextureValues.magnesio());
         double cTCCmol = equilibrioCorrecaoCTC.calculaCTCCmol(chosenTextureValues.potassio(),chosenTextureValues.calcio(),chosenTextureValues.magnesio(),chosenTextureValues.aluminioHidrogenio());
         vPorcentagemAtual.setText(String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual(sCmol,cTCCmol)));
+
 
     }
 
@@ -149,16 +151,16 @@ public class MainController {
         CorrecaoFosforo correcaoFosforo = new CorrecaoFosforo();
         ConverteMgDm3EmKgHa converteMgDm3EmKgHa = new ConverteMgDm3EmKgHa();
         ConverteKgHaEmP2O5 converteKgHaEmP2O5 = new ConverteKgHaEmP2O5();
-        double necessiade  =
-                converteKgHaEmP2O5.converte(
-                    converteMgDm3EmKgHa.converte(
-                    Double.parseDouble(teorFosforoAtingir.getText())
-                            - Double.parseDouble(fosforoNoSolo.getText())
-                    )
-                ) * 100/Double.parseDouble(eficienciaFosforo.getText())
-                ;
         try{
             FonteFosforo chosenFonteFosforo = FonteFosforo.values()[Integer.parseInt(fonteFosforo.getCharacters().toString())-1];
+            double necessiade  =
+                    converteKgHaEmP2O5.converte(
+                            converteMgDm3EmKgHa.converte(
+                                    Double.parseDouble(teorFosforoAtingir.getText())
+                                            - Double.parseDouble(fosforoNoSolo.getText())
+                            )
+                    ) * 100/Double.parseDouble(eficienciaFosforo.getText())
+                    ;
             quantidadeAplicarFosforo
                     .setText(String.valueOf(
                             correcaoFosforo
@@ -178,10 +180,12 @@ public class MainController {
             Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
             if(iteratorNutrientes.hasNext()){
                 NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
-                primeiroNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() + ": " + nutrienteAdicional.getCorrecaoAdicional());
+                primeiroNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() +
+                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
             }if(iteratorNutrientes.hasNext()){
                 NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
-                segundoNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() + ": " + nutrienteAdicional.getCorrecaoAdicional());
+                segundoNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() +
+                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
             }
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e){
             quantidadeAplicarFosforo.setText("ERROR");
@@ -194,11 +198,46 @@ public class MainController {
 
     public void buttonCalcularPotassioAction(ActionEvent actionEvent) {
         try{
-            quantidadeAplicarPotassio.setText(String.valueOf( Double.parseDouble(potassioCTCDesejada.getCharacters().toString()) /  Double.parseDouble(fontePotassio.getCharacters().toString())));
+            CorrecaoPotassio correcaoPotassio = new CorrecaoPotassio();
+            FontePotassio chosenFontePotassio = FontePotassio.values()[Integer.parseInt(fontePotassio.getCharacters().toString())-1];
+            ConverteCMolcDm3EmMgDm3  converteCMolcDm3EmMgDm3 = new ConverteCMolcDm3EmMgDm3();
+            ConverteMgDm3EmKgHa converteMgDm3EmKgHa = new ConverteMgDm3EmKgHa();
+            ConverteKgHaEmK2O converteKgHaEmK2O = new ConverteKgHaEmK2O();
+            double efficiency = 0.85;
+            Double potassioCTCAtualResult = Double.parseDouble(potassioNoSolo.getText())/
+                    (Double.parseDouble(calcioNoSolo.getText()) +
+                            Double.parseDouble(magnesioNoSolo.getText()) +
+                            Double.parseDouble(potassioNoSolo.getText())+
+                            Double.parseDouble(hPlusAlNoSolo.getText()))
+                    *100;
+
+            Double kToAdd = ( Double.parseDouble(potassioNoSolo.getText())*
+                    Double.parseDouble(potassioCTCDesejada.getText())/
+                    potassioCTCAtualResult)-
+                    Double.parseDouble(potassioNoSolo.getText());
+
+            double a  = (converteKgHaEmK2O.converte(converteMgDm3EmKgHa.converte(converteCMolcDm3EmMgDm3.converte(kToAdd)))*100 / efficiency / 100);
+            quantidadeAplicarPotassio.setText(
+                    String.valueOf(
+                            (a*100/ chosenFontePotassio.getTeorFonte())/100));
+
+            potassioCTCAtual.setText(String.valueOf(potassioCTCAtualResult));
+
             potassioAposCorrecoes.setText(String.valueOf(Double.parseDouble(potassioCTCDesejada.getText())));
             custoTotalPotassio.setText(String.valueOf(Double.parseDouble(quantidadeAplicarPotassio.getText()) * Double.parseDouble(fontePotassio.getText())));
-            primeiroNutrienteAdicionalPotassio.setText("Nutriente1: 9.3");
-            segundoNutrienteAdicionalPotassio.setText("Nutriente2: 5.2");
+
+
+            Set<NutrienteAdicional> nutrientesAdicionais = correcaoPotassio.getNutrientesAdicionais(Double.parseDouble(quantidadeAplicarPotassio.getText()), chosenFontePotassio);
+            Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
+            if(iteratorNutrientes.hasNext()){
+                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
+                primeiroNutrienteAdicionalPotassio.setText(nutrienteAdicional.getNome().toString() +
+                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
+            }if(iteratorNutrientes.hasNext()){
+                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
+                segundoNutrienteAdicionalPotassio.setText(nutrienteAdicional.getNome().toString() +
+                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
+            }
         }catch (NumberFormatException e){
             quantidadeAplicarPotassio.setText("ERROR");
             potassioAposCorrecoes.setText("ERROR");
