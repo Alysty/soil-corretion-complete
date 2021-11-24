@@ -1,14 +1,18 @@
-package com.example.solosgui;
+package com.example.solosgui.backend.controller;
 
-import com.example.solosgui.backend.controller.EquilibrioCorrecaoCTC;
+import com.example.solosgui.backend.model.NutrienteAdicional;
+import com.example.solosgui.backend.model.data.FonteFosforo;
 import com.example.solosgui.backend.model.data.NutrientesCTC;
 import com.example.solosgui.backend.model.data.TexturaSolo;
-import com.example.solosgui.util.exceptions.InvalidEntryException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+
+import java.util.Iterator;
+import java.util.Set;
 
 public class MainController {
     public TextField produto;
@@ -61,6 +65,8 @@ public class MainController {
     public Text primeiroNutrienteAdicionalFosforo;
     public Text segundoNutrienteAdicionalFosforo;
     public Button buttonCalcularFosforo;
+    public Label valorTonFosforoLabel;
+    public TextField valorTonFosforoTextField;
 
     //postasio controller
     public TextField potassioCTCDesejada;
@@ -112,7 +118,7 @@ public class MainController {
             errorAlert.setHeaderText("Invalid input");
             errorAlert.setContentText("The input used is invalid");
             errorAlert.showAndWait();
-        }catch (InvalidEntryException e){
+        }catch (ArrayIndexOutOfBoundsException e){
             Alert warningAlert = new Alert(Alert.AlertType.WARNING);
             warningAlert.setHeaderText("Unavailable");
             warningAlert.setContentText("The input used is unavailable");
@@ -120,33 +126,64 @@ public class MainController {
         }
     }
 
-    public void texturaEscolhida() throws NumberFormatException, InvalidEntryException {
+    public void texturaEscolhida() throws NumberFormatException, ArrayIndexOutOfBoundsException{
         NutrientesCTC chosenTextureValues = TexturaSolo.values()[Integer.parseInt(texturaSolo.getCharacters().toString())].calculaValorIdeal();
-        if(chosenTextureValues != null){
-            fosforoIdeal.setText(String.valueOf(chosenTextureValues.fosforo()));
-            potassioIdeal.setText(String.valueOf(chosenTextureValues.potassio()));
-            calcioIdeal.setText(String.valueOf(chosenTextureValues.calcio()));
-            magnesioIdeal.setText(String.valueOf(chosenTextureValues.magnesio()));
-            enxofreIdeal.setText(String.valueOf(chosenTextureValues.enxofre()));
-            aluminioIdeal.setText(String.valueOf(chosenTextureValues.aluminio()));
-            hPlusAlIdeal.setText(String.valueOf(chosenTextureValues.aluminioHidrogenio()));
-            potassioCTCAtual.setText(String.valueOf(chosenTextureValues.potassio()));
-            calcioCTCAtual.setText(String.valueOf(chosenTextureValues.calcio()));
-            magnesioCTCAtual.setText(String.valueOf(chosenTextureValues.magnesio()));
-            vPorcentagemAtual.setText(String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual()));
-        }else{
-            throw new InvalidEntryException();
-        }
+        fosforoIdeal.setText(String.valueOf(chosenTextureValues.fosforo()));
+        potassioIdeal.setText(String.valueOf(chosenTextureValues.potassio()));
+        calcioIdeal.setText(String.valueOf(chosenTextureValues.calcio()));
+        magnesioIdeal.setText(String.valueOf(chosenTextureValues.magnesio()));
+        enxofreIdeal.setText(String.valueOf(chosenTextureValues.enxofre()));
+        aluminioIdeal.setText(String.valueOf(chosenTextureValues.aluminio()));
+        hPlusAlIdeal.setText(String.valueOf(chosenTextureValues.aluminioHidrogenio()));
+
+        potassioCTCAtual.setText(String.valueOf(chosenTextureValues.potassio()));
+        calcioCTCAtual.setText(String.valueOf(chosenTextureValues.calcio()));
+        magnesioCTCAtual.setText(String.valueOf(chosenTextureValues.magnesio()));
+        double sCmol = equilibrioCorrecaoCTC.calculaSCmol(chosenTextureValues.potassio(),chosenTextureValues.calcio(),chosenTextureValues.magnesio());
+        double cTCCmol = equilibrioCorrecaoCTC.calculaCTCCmol(chosenTextureValues.potassio(),chosenTextureValues.calcio(),chosenTextureValues.magnesio(),chosenTextureValues.aluminioHidrogenio());
+        vPorcentagemAtual.setText(String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual(sCmol,cTCCmol)));
+
     }
 
     public void buttonCalcularFosforoAction(ActionEvent actionEvent) {
+        CorrecaoFosforo correcaoFosforo = new CorrecaoFosforo();
+        ConverteMgDm3EmKgHa converteMgDm3EmKgHa = new ConverteMgDm3EmKgHa();
+        ConverteKgHaEmP2O5 converteKgHaEmP2O5 = new ConverteKgHaEmP2O5();
+        double necessiade  =
+                converteKgHaEmP2O5.converte(
+                    converteMgDm3EmKgHa.converte(
+                    Double.parseDouble(teorFosforoAtingir.getText())
+                            - Double.parseDouble(fosforoNoSolo.getText())
+                    )
+                ) * 100/Double.parseDouble(eficienciaFosforo.getText())
+                ;
         try{
-            quantidadeAplicarFosforo.setText(String.valueOf( Double.parseDouble(teorFosforoAtingir.getCharacters().toString()) /  Double.parseDouble(fonteFosforo.getCharacters().toString())));
-            fosforoAposCorrecoes.setText(String.valueOf(Double.parseDouble(teorFosforoAtingir.getText())));
-            custoTotalFosforo.setText(String.valueOf(Double.parseDouble(quantidadeAplicarFosforo.getText()) * Double.parseDouble(fonteFosforo.getText())));
-            primeiroNutrienteAdicionalFosforo.setText("Nutriente1: 2.3");
-            segundoNutrienteAdicionalFosforo.setText("Nutriente2: 4.0");
-        }catch (NumberFormatException e){
+            FonteFosforo chosenFonteFosforo = FonteFosforo.values()[Integer.parseInt(fonteFosforo.getCharacters().toString())-1];
+            quantidadeAplicarFosforo
+                    .setText(String.valueOf(
+                            correcaoFosforo
+                                .calculaQuantidadeAplicar(
+                                        necessiade,
+                                        chosenFonteFosforo
+                                )
+                            )
+                    );
+            fosforoAposCorrecoes.setText(String.valueOf(teorFosforoAtingir.getText()));
+            custoTotalFosforo.setText(String.valueOf(correcaoFosforo.calculaCusto(
+                    Double.parseDouble(valorTonFosforoTextField.getText())
+                    ,Double.parseDouble(quantidadeAplicarFosforo.getText()))
+            ));
+
+            Set<NutrienteAdicional> nutrientesAdicionais = correcaoFosforo.getNutrientesAdicionais(Double.parseDouble(quantidadeAplicarFosforo.getText()), chosenFonteFosforo);
+            Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
+            if(iteratorNutrientes.hasNext()){
+                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
+                primeiroNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() + ": " + nutrienteAdicional.getCorrecaoAdicional());
+            }if(iteratorNutrientes.hasNext()){
+                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
+                segundoNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() + ": " + nutrienteAdicional.getCorrecaoAdicional());
+            }
+        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e){
             quantidadeAplicarFosforo.setText("ERROR");
             fosforoAposCorrecoes.setText("ERROR");
             custoTotalFosforo.setText("ERROR");
