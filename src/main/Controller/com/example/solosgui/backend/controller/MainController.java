@@ -67,7 +67,6 @@ public class MainController {
     public Text primeiroNutrienteAdicionalFosforo;
     public Text segundoNutrienteAdicionalFosforo;
     public Button buttonCalcularFosforo;
-    public Label valorTonFosforoLabel;
     public TextField valorTonFosforoTextField;
 
     //postasio controller
@@ -79,6 +78,7 @@ public class MainController {
     public Text segundoNutrienteAdicionalPotassio;
     public Text quantidadeAplicarPotassio;
     public Button buttonCalcularPotassio;
+    public TextField valorTonPotassioTextField;
 
     //calciomag controller
     public Text custoTotalCalcioMag;
@@ -224,8 +224,10 @@ public class MainController {
             potassioCTCAtual.setText(String.valueOf(potassioCTCAtualResult));
 
             potassioAposCorrecoes.setText(String.valueOf(Double.parseDouble(potassioCTCDesejada.getText())));
-            custoTotalPotassio.setText(String.valueOf(Double.parseDouble(quantidadeAplicarPotassio.getText()) * Double.parseDouble(fontePotassio.getText())));
-
+            custoTotalPotassio.setText(String.valueOf(correcaoPotassio.calculaCusto(
+                    Double.parseDouble(valorTonPotassioTextField.getText())
+                    ,Double.parseDouble(quantidadeAplicarPotassio.getText()))
+            ));
 
             Set<NutrienteAdicional> nutrientesAdicionais = correcaoPotassio.getNutrientesAdicionais(Double.parseDouble(quantidadeAplicarPotassio.getText()), chosenFontePotassio);
             Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
