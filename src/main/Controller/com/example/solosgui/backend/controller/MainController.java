@@ -1,10 +1,9 @@
 package com.example.solosgui.backend.controller;
 
+import com.example.solosgui.backend.model.ICorrecaoNutriente;
+import com.example.solosgui.backend.model.IFonteNutriente;
 import com.example.solosgui.backend.model.NutrienteAdicional;
-import com.example.solosgui.backend.model.data.FonteFosforo;
-import com.example.solosgui.backend.model.data.FontePotassio;
-import com.example.solosgui.backend.model.data.NutrientesCTC;
-import com.example.solosgui.backend.model.data.TexturaSolo;
+import com.example.solosgui.backend.model.data.*;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -58,6 +57,10 @@ public class MainController {
     public Text hPlusAlIdeal;
     public Text hPlusAlAposCorrecoes;
 
+    public Label sCmolResult;
+    public Label cTCCmolResult;
+    public Label vPercentResult;
+
     //fosforo controller
     public TextField teorFosforoAtingir;
     public TextField fonteFosforo;
@@ -101,6 +104,7 @@ public class MainController {
     public EquilibrioCorrecaoCTC equilibrioCorrecaoCTC = new EquilibrioCorrecaoCTC();
 
 
+
     public void actionTextura(ActionEvent actionEvent) {
         try{
             texturaEscolhida();
@@ -138,11 +142,15 @@ public class MainController {
         aluminioIdeal.setText(String.valueOf(chosenTextureValues.aluminio()));
         hPlusAlIdeal.setText(String.valueOf(chosenTextureValues.aluminioHidrogenio()));
 
-        calcioCTCAtual.setText(String.valueOf(chosenTextureValues.calcio()));
-        magnesioCTCAtual.setText(String.valueOf(chosenTextureValues.magnesio()));
-        double sCmol = equilibrioCorrecaoCTC.calculaSCmol(chosenTextureValues.potassio(),chosenTextureValues.calcio(),chosenTextureValues.magnesio());
-        double cTCCmol = equilibrioCorrecaoCTC.calculaCTCCmol(chosenTextureValues.potassio(),chosenTextureValues.calcio(),chosenTextureValues.magnesio(),chosenTextureValues.aluminioHidrogenio());
-        vPorcentagemAtual.setText(String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual(sCmol,cTCCmol)));
+
+
+        fosforoNoSolo.setText("8.59");
+        potassioNoSolo.setText("0.15");
+        calcioNoSolo.setText("5.76");
+        magnesioNoSolo.setText("1.63");
+        enxofreNoSolo.setText("3.67");
+        aluminioNoSolo.setText("0.00");
+        hPlusAlNoSolo.setText("5.35");
 
 
     }
@@ -159,8 +167,8 @@ public class MainController {
                                     Double.parseDouble(teorFosforoAtingir.getText())
                                             - Double.parseDouble(fosforoNoSolo.getText())
                             )
-                    ) * 100/Double.parseDouble(eficienciaFosforo.getText())
-                    ;
+                    ) * 100/Double.parseDouble(eficienciaFosforo.getText());
+
             quantidadeAplicarFosforo
                     .setText(String.valueOf(
                             correcaoFosforo
@@ -170,23 +178,17 @@ public class MainController {
                                 )
                             )
                     );
+
             fosforoAposCorrecoes.setText(String.valueOf(teorFosforoAtingir.getText()));
+
             custoTotalFosforo.setText(String.valueOf(correcaoFosforo.calculaCusto(
                     Double.parseDouble(valorTonFosforoTextField.getText())
                     ,Double.parseDouble(quantidadeAplicarFosforo.getText()))
             ));
 
-            Set<NutrienteAdicional> nutrientesAdicionais = correcaoFosforo.getNutrientesAdicionais(Double.parseDouble(quantidadeAplicarFosforo.getText()), chosenFonteFosforo);
-            Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
-            if(iteratorNutrientes.hasNext()){
-                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
-                primeiroNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() +
-                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
-            }if(iteratorNutrientes.hasNext()){
-                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
-                segundoNutrienteAdicionalFosforo.setText(nutrienteAdicional.getNome().toString() +
-                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
-            }
+            nutrientesAdicionaisPresenter(correcaoFosforo,
+                    quantidadeAplicarFosforo, chosenFonteFosforo,
+                    primeiroNutrienteAdicionalFosforo, segundoNutrienteAdicionalFosforo);
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e){
             quantidadeAplicarFosforo.setText("ERROR");
             fosforoAposCorrecoes.setText("ERROR");
@@ -203,6 +205,7 @@ public class MainController {
             ConverteCMolcDm3EmMgDm3  converteCMolcDm3EmMgDm3 = new ConverteCMolcDm3EmMgDm3();
             ConverteMgDm3EmKgHa converteMgDm3EmKgHa = new ConverteMgDm3EmKgHa();
             ConverteKgHaEmK2O converteKgHaEmK2O = new ConverteKgHaEmK2O();
+            //efficiency was 85% in the original excel without the grey block to changed it is assumed it wont change
             double efficiency = 0.85;
             Double potassioCTCAtualResult = Double.parseDouble(potassioNoSolo.getText())/
                     (Double.parseDouble(calcioNoSolo.getText()) +
@@ -211,15 +214,14 @@ public class MainController {
                             Double.parseDouble(hPlusAlNoSolo.getText()))
                     *100;
 
-            Double kToAdd = ( Double.parseDouble(potassioNoSolo.getText())*
-                    Double.parseDouble(potassioCTCDesejada.getText())/
-                    potassioCTCAtualResult)-
-                    Double.parseDouble(potassioNoSolo.getText());
+            Double kToAdd = correcaoPotassio.calculaNecessidadeAdicionarCMolcDm3( Double.parseDouble(potassioNoSolo.getText()),
+                    potassioCTCAtualResult,
+                    Double.parseDouble(potassioCTCDesejada.getText()));
 
-            double a  = (converteKgHaEmK2O.converte(converteMgDm3EmKgHa.converte(converteCMolcDm3EmMgDm3.converte(kToAdd)))*100 / efficiency / 100);
+            double covertedPotassio  = (converteKgHaEmK2O.converte(converteMgDm3EmKgHa.converte(converteCMolcDm3EmMgDm3.converte(kToAdd)))*100 / efficiency / 100);
             quantidadeAplicarPotassio.setText(
                     String.valueOf(
-                            (a*100/ chosenFontePotassio.getTeorFonte())/100));
+                            (covertedPotassio*100/ chosenFontePotassio.getTeorFonte())/100));
 
             potassioCTCAtual.setText(String.valueOf(potassioCTCAtualResult));
 
@@ -229,17 +231,9 @@ public class MainController {
                     ,Double.parseDouble(quantidadeAplicarPotassio.getText()))
             ));
 
-            Set<NutrienteAdicional> nutrientesAdicionais = correcaoPotassio.getNutrientesAdicionais(Double.parseDouble(quantidadeAplicarPotassio.getText()), chosenFontePotassio);
-            Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
-            if(iteratorNutrientes.hasNext()){
-                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
-                primeiroNutrienteAdicionalPotassio.setText(nutrienteAdicional.getNome().toString() +
-                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
-            }if(iteratorNutrientes.hasNext()){
-                NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
-                segundoNutrienteAdicionalPotassio.setText(nutrienteAdicional.getNome().toString() +
-                        ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
-            }
+            nutrientesAdicionaisPresenter(correcaoPotassio,
+                    quantidadeAplicarPotassio, chosenFontePotassio,
+                    primeiroNutrienteAdicionalPotassio, segundoNutrienteAdicionalPotassio);
         }catch (NumberFormatException e){
             quantidadeAplicarPotassio.setText("ERROR");
             potassioAposCorrecoes.setText("ERROR");
@@ -252,13 +246,18 @@ public class MainController {
 
     public void buttonCalcularCalcioMagAction(ActionEvent actionEvent) {
         try {
+            CorrecaoCalcioMagnesio correcaoCalcioMagnesio = new CorrecaoCalcioMagnesio();
+            FonteCalcioMagnesio chosenFonteCalcioMagnesio =  FonteCalcioMagnesio.values()[Integer.parseInt(fonteCorretivo.getCharacters().toString())-1];
+
             quantidadeAplicarCalcioMag.setText(String.valueOf( Double.parseDouble(calcioCTCDesejada.getCharacters().toString()) /  Double.parseDouble(teorCaOCorretivo.getCharacters().toString())));
             calcioAposCorrecoes.setText(String.valueOf(Double.parseDouble(calcioCTCDesejada.getText())));
             magnesioAposCorrecoes.setText(String.valueOf(Double.parseDouble(magnesioCTCDesejada.getText())));
             custoTotalCalcioMag.setText(String.valueOf(Double.parseDouble(quantidadeAplicarCalcioMag.getText()) * Double.parseDouble(fonteCorretivo.getText())));
             vPorcentagemAposCorrecoes.setText(String.valueOf(Double.parseDouble(pRNT.getText())));
-            primeiroNutrienteAdicionalCalcioMag.setText("Nutriente1: 6.6");
-            segundoNutrienteAdicionalCalcioMag.setText("Nutriente2: 5.5");
+
+            nutrientesAdicionaisPresenter(correcaoCalcioMagnesio,
+                    quantidadeAplicarCalcioMag, chosenFonteCalcioMagnesio,
+                    primeiroNutrienteAdicionalCalcioMag, segundoNutrienteAdicionalCalcioMag);
         }catch (NumberFormatException e){
             quantidadeAplicarCalcioMag.setText("ERROR");
             calcioAposCorrecoes.setText("ERROR");
@@ -267,6 +266,44 @@ public class MainController {
             vPorcentagemAposCorrecoes.setText("ERROR");
             primeiroNutrienteAdicionalCalcioMag.setText("ERROR");
             segundoNutrienteAdicionalCalcioMag.setText("ERROR");
+        }
+    }
+
+    private void nutrientesAdicionaisPresenter(ICorrecaoNutriente<? extends IFonteNutriente> correcaoNutriente,
+                                              Text quantidadeAplicar, IFonteNutriente chosenSource,
+                                              Text firstNutrient, Text secondNutrient){
+
+        Set<NutrienteAdicional> nutrientesAdicionais = correcaoNutriente.getNutrientesAdicionais(Double.parseDouble(quantidadeAplicar.getText()), chosenSource);
+        Iterator<NutrienteAdicional> iteratorNutrientes = nutrientesAdicionais.iterator();
+        if(iteratorNutrientes.hasNext()){
+            NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
+            firstNutrient.setText(nutrienteAdicional.getNome().toString() +
+                    ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
+        }if(iteratorNutrientes.hasNext()){
+            NutrienteAdicional nutrienteAdicional = iteratorNutrientes.next();
+            secondNutrient.setText(nutrienteAdicional.getNome().toString() +
+                    ": " + new DecimalFormat().format(nutrienteAdicional.getCorrecaoAdicional()));
+        }
+    }
+
+    public void calculateCmolAndVPercentButton(ActionEvent actionEvent) {
+        try {
+            double sCmol = equilibrioCorrecaoCTC.calculaSCmol(Double.parseDouble(potassioNoSolo.getText()), Double.parseDouble(calcioNoSolo.getText()),
+                    Double.parseDouble(magnesioNoSolo.getText()));
+            double cTCCmol = equilibrioCorrecaoCTC.calculaCTCCmol(Double.parseDouble(potassioNoSolo.getText()),
+                    Double.parseDouble(calcioNoSolo.getText()), Double.parseDouble(magnesioNoSolo.getText()), Double.parseDouble(hPlusAlNoSolo.getText()));
+            sCmolResult.setText(String.valueOf(sCmol));
+            cTCCmolResult.setText(String.valueOf(cTCCmol));
+
+            String vPercent = String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual(sCmol, cTCCmol));
+            vPercentResult.setText(vPercent);
+            vPorcentagemAtual.setText(vPercent);
+        }
+        catch(NumberFormatException e){
+            sCmolResult.setText("ERROR");
+            cTCCmolResult.setText("ERROR");
+            vPercentResult.setText("ERROR");
+            vPorcentagemAtual.setText("ERROR");
         }
     }
 }

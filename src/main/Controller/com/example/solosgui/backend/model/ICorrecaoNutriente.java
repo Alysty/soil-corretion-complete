@@ -20,8 +20,8 @@ public interface ICorrecaoNutriente<T extends IFonteNutriente> {
     }
 
     public default Set<NutrienteAdicional> getNutrientesAdicionais(
-        double qtdeAplicar, 
-        T fonteNutriente) {
+            double qtdeAplicar,
+            IFonteNutriente fonteNutriente) {
 
         fonteNutriente
             .getNutrientesAdicionais()
