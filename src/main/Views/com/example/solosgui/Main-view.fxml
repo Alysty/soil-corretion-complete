@@ -612,6 +612,7 @@
                   <Insets left="15.0" right="15.0" />
                </GridPane.margin>
             </TextField>
+            <Label text="\% de participação do Magnesio na CTC, desejada:" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
          </GridPane>
          <GridPane GridPane.columnIndex="1" GridPane.rowIndex="3">
             <columnConstraints>
@@ -663,13 +664,13 @@
                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
-            <Label text="PRNT:" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
-            <TextField fx:id="fonteCorretivo" GridPane.rowIndex="1">
+            <Label text="PRNT:" GridPane.halignment="CENTER" />
+            <TextField fx:id="pRNT" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets left="15.0" right="15.0" />
                </GridPane.margin>
             </TextField>
-            <Label text="Fonte de Corretivo a usar: " GridPane.halignment="CENTER" />
+            <Label text="Teor de CaO do corretivo:" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
          </GridPane>
          <GridPane GridPane.rowIndex="3">
             <columnConstraints>
@@ -681,13 +682,13 @@
                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
-            <Label text="Teor de CaO do corretivo:" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-            <TextField fx:id="teorCaOCorretivo" GridPane.rowIndex="2">
+            <TextField fx:id="teorCaOCorretivo">
                <GridPane.margin>
                   <Insets left="15.0" right="15.0" />
                </GridPane.margin>
             </TextField>
-            <TextField fx:id="pRNT">
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Valor/ton" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+            <TextField fx:id="valorTonCorretivoTextField" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets left="15.0" right="15.0" />
                </GridPane.margin>
@@ -734,8 +735,13 @@
                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-               <Label text="\% de participação do Magnesio na CTC, desejada:" GridPane.halignment="CENTER" />
-               <TextField fx:id="magnesioCTCDesejada" GridPane.rowIndex="1">
+               <TextField fx:id="magnesioCTCDesejada">
+                  <GridPane.margin>
+                     <Insets left="15.0" right="15.0" />
+                  </GridPane.margin>
+               </TextField>
+               <Label text="Fonte de Corretivo a usar: " GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+               <TextField fx:id="fonteCorretivo" GridPane.rowIndex="2">
                   <GridPane.margin>
                      <Insets left="15.0" right="15.0" />
                   </GridPane.margin>
@@ -757,7 +763,7 @@
                <Text fx:id="calcioCTCAtual" strokeType="OUTSIDE" strokeWidth="0.0" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
                <Text fx:id="magnesioCTCAtual" strokeType="OUTSIDE" strokeWidth="0.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
                <Label text="Calcio:" GridPane.rowIndex="1" />
-               <Label text="Magnesio" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               <Label text="Magnesio:" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             </children>
          </GridPane>
       </GridPane>

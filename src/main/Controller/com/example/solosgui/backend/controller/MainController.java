@@ -98,11 +98,11 @@ public class MainController {
     public Text segundoNutrienteAdicionalCalcioMag;
     public TextField magnesioCTCDesejada;
     public Text magnesioCTCAtual;
+    public TextField valorTonCorretivoTextField;
 
 
     //Util
     public EquilibrioCorrecaoCTC equilibrioCorrecaoCTC = new EquilibrioCorrecaoCTC();
-
 
 
     public void actionTextura(ActionEvent actionEvent) {
@@ -141,18 +141,6 @@ public class MainController {
         enxofreIdeal.setText(String.valueOf(chosenTextureValues.enxofre()));
         aluminioIdeal.setText(String.valueOf(chosenTextureValues.aluminio()));
         hPlusAlIdeal.setText(String.valueOf(chosenTextureValues.aluminioHidrogenio()));
-
-
-
-        fosforoNoSolo.setText("8.59");
-        potassioNoSolo.setText("0.15");
-        calcioNoSolo.setText("5.76");
-        magnesioNoSolo.setText("1.63");
-        enxofreNoSolo.setText("3.67");
-        aluminioNoSolo.setText("0.00");
-        hPlusAlNoSolo.setText("5.35");
-
-
     }
 
     public void buttonCalcularFosforoAction(ActionEvent actionEvent) {
@@ -161,7 +149,7 @@ public class MainController {
         ConverteKgHaEmP2O5 converteKgHaEmP2O5 = new ConverteKgHaEmP2O5();
         try{
             FonteFosforo chosenFonteFosforo = FonteFosforo.values()[Integer.parseInt(fonteFosforo.getCharacters().toString())-1];
-            double necessiade  =
+            double necessidade  =
                     converteKgHaEmP2O5.converte(
                             converteMgDm3EmKgHa.converte(
                                     Double.parseDouble(teorFosforoAtingir.getText())
@@ -173,7 +161,7 @@ public class MainController {
                     .setText(String.valueOf(
                             correcaoFosforo
                                 .calculaQuantidadeAplicar(
-                                        necessiade,
+                                        necessidade,
                                         chosenFonteFosforo
                                 )
                             )
@@ -249,11 +237,56 @@ public class MainController {
             CorrecaoCalcioMagnesio correcaoCalcioMagnesio = new CorrecaoCalcioMagnesio();
             FonteCalcioMagnesio chosenFonteCalcioMagnesio =  FonteCalcioMagnesio.values()[Integer.parseInt(fonteCorretivo.getCharacters().toString())-1];
 
-            quantidadeAplicarCalcioMag.setText(String.valueOf( Double.parseDouble(calcioCTCDesejada.getCharacters().toString()) /  Double.parseDouble(teorCaOCorretivo.getCharacters().toString())));
+            double calcioCTCAtualResult =
+                    Double.parseDouble(calcioNoSolo.getText())/
+                            ((Double.parseDouble(calcioNoSolo.getText()) + Double.parseDouble(magnesioNoSolo.getText()) + Double.parseDouble(potassioNoSolo.getText()))+
+                    Double.parseDouble(hPlusAlNoSolo.getText())) * 100;
+            calcioCTCAtual.setText(String.valueOf(calcioCTCAtualResult));
+
+            double quantidadeDeCalcioNoFosforo = 0;
+
+            if (primeiroNutrienteAdicionalFosforo.getText().contains("CALCIO")){
+                quantidadeDeCalcioNoFosforo = Double.parseDouble(primeiroNutrienteAdicionalFosforo.getText().substring(8));
+            }
+            if (segundoNutrienteAdicionalFosforo.getText().contains("CALCIO")){
+                quantidadeDeCalcioNoFosforo = Double.parseDouble(segundoNutrienteAdicionalFosforo.getText().substring(8));
+            }
+
+
+            //unfinished, calculation is incomplete
+            double quantidadeAplicarResult = (Double.parseDouble(calcioNoSolo.getText()) *
+                    Double.parseDouble(calcioCTCDesejada.getText()) /
+                    calcioCTCAtualResult) - Double.parseDouble(calcioNoSolo.getText())
+                    -(quantidadeDeCalcioNoFosforo);
+
+            quantidadeAplicarCalcioMag.setText(
+                    String.valueOf(
+                            correcaoCalcioMagnesio.calculaQuantidadeAplicar(
+                                    quantidadeAplicarResult, Double.parseDouble(pRNT.getText())
+                            )
+                    )
+            );
+
             calcioAposCorrecoes.setText(String.valueOf(Double.parseDouble(calcioCTCDesejada.getText())));
-            magnesioAposCorrecoes.setText(String.valueOf(Double.parseDouble(magnesioCTCDesejada.getText())));
-            custoTotalCalcioMag.setText(String.valueOf(Double.parseDouble(quantidadeAplicarCalcioMag.getText()) * Double.parseDouble(fonteCorretivo.getText())));
+
+            //unfinished, calculation is incomplete
+            //magnesioAposCorrecoes.setText(String.valueOf(Double.parseDouble(magnesioCTCDesejada.getText())));
+
+
+            custoTotalCalcioMag.setText(String.valueOf(correcaoCalcioMagnesio.calculaCusto(
+                    Double.parseDouble(valorTonCorretivoTextField.getText()),
+                    Double.parseDouble(quantidadeAplicarCalcioMag.getText())))
+            );
+
+
+            double sCmol = equilibrioCorrecaoCTC.calculaSCmol(Double.parseDouble(potassioAposCorrecoes.getText()), Double.parseDouble(calcioAposCorrecoes.getText()),
+                    Double.parseDouble(magnesioAposCorrecoes.getText()));
+            double cTCCmol = equilibrioCorrecaoCTC.calculaCTCCmol(Double.parseDouble(potassioAposCorrecoes.getText()),
+                    Double.parseDouble(calcioAposCorrecoes.getText()), Double.parseDouble(magnesioAposCorrecoes.getText()), Double.parseDouble(hPlusAlAposCorrecoes.getText()));
+            String vPercent = String.valueOf(equilibrioCorrecaoCTC.calculaVPercentual(sCmol, cTCCmol));
+            vPorcentagemAposCorrecoes.setText(vPercent);
             vPorcentagemAposCorrecoes.setText(String.valueOf(Double.parseDouble(pRNT.getText())));
+
 
             nutrientesAdicionaisPresenter(correcaoCalcioMagnesio,
                     quantidadeAplicarCalcioMag, chosenFonteCalcioMagnesio,
@@ -306,4 +339,5 @@ public class MainController {
             vPorcentagemAtual.setText("ERROR");
         }
     }
+
 }
